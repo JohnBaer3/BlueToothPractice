@@ -140,9 +140,15 @@ extension HRMViewController: CBPeripheralDelegate {
     guard let characteristicData = characteristic.value,
       let byte = characteristicData.first else { return "Error" }
     
-    for i in 0..<characteristicData.count{
-      print(i ,": ", characteristicData[i])
-    }
+    let bytes = [characteristicData.first, characteristicData[1]] as! [UInt8]
+    let data = NSData(bytes: bytes, length: 2)
+    var u16 : UInt16 = 0 ; data.getBytes(&u16)
+    print(u16)
+    
+    //Get first 2 Datas, convert that into a UInt16
+//    for i in 0..<2{
+//      print("\(i) : ", characteristicData[i])
+//    }
     
 //    let arr = characteristicData[12]
 //    print("bla: \(arr)")
