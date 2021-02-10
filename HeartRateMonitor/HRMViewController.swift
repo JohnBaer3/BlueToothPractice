@@ -7,6 +7,32 @@ class HRMViewController: UIViewController {
   @IBOutlet weak var heartRateLabel: UILabel!
   @IBOutlet weak var bodySensorLocationLabel: UILabel!
 
+  
+  @IBAction func buttonClick(_ sender: Any) {
+    periph!.readValue(for: chara!)
+  }
+  
+  var timer = Timer()
+  var timestamp: Float = 0.0
+
+  
+  
+  var periph: CBPeripheral? = nil {
+    didSet{
+      if periph != nil{
+        timer = Timer.scheduledTimer(timeInterval: 0.5, target: self, selector: #selector(getBTData), userInfo: nil, repeats: true)
+      }
+    }
+  }
+  
+  @objc func getBTData(){
+//    peripheral(periph!, didUpdateValueFor: chara!, error: nil)
+    periph!.readValue(for: chara!)
+  }
+  
+  var chara: CBCharacteristic? = nil
+  
+  
   let deviceName = "INB-0001"
   let heartRateMeasurementCharacteristicCBUUID = CBUUID(string: "00010002-0000-1000-8000-00805F00050F")
   
@@ -79,7 +105,7 @@ extension HRMViewController: CBPeripheralDelegate {
   
   func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
     guard let characteristics = service.characteristics else { return }
-
+    
     for characteristic in characteristics {
       print(characteristic)
       if characteristic.properties.contains(.read) {
@@ -98,6 +124,9 @@ extension HRMViewController: CBPeripheralDelegate {
       case heartRateMeasurementCharacteristicCBUUID:
         print(characteristic.value ?? "no value")
         
+        periph = peripheral
+        chara = characteristic
+        
         //This is where the byte array is I'm preeeeetty sure
         //So grab the different positions in the 16 byte array here...?
         let bodySensorLocation = bodyLocation(from: characteristic)
@@ -111,10 +140,15 @@ extension HRMViewController: CBPeripheralDelegate {
     guard let characteristicData = characteristic.value,
       let byte = characteristicData.first else { return "Error" }
     
-    let arr = characteristicData[8]
-    print("bla: \(arr)")
+    for i in 0..<characteristicData.count{
+      print(i ,": ", characteristicData[i])
+    }
     
-    print(byte)
+//    let arr = characteristicData[12]
+//    print("bla: \(arr)")
+    
+    
+    
     return String(byte)
     
     //Switch on the different indices of characteristicData - for position 0, 2, 4, 6, 8, 10, 12, 14
